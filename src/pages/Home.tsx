@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Link} from "react-router";
 
-const slides = ['/Home/step1.gif', '/Home/step2.gif', '/Home/step3.gif', '/Home/step4.gif', '/Home/step5.gif'];
+const slides = ['/home/step1.gif', '/home/step2.gif', '/home/step3.gif', '/home/step4.gif', '/home/step5.gif'];
 
 const Home = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -15,7 +15,7 @@ const Home = () => {
             </div>
 
             {/*middle*/}
-            <div className="bg-[rgba(10,50,149,0.7)] w-sm md:w-md mx-auto p-3 my-4">
+            <div className="bg-[rgba(10,50,149,0.7)] w-xs md:w-sm mx-auto p-3 my-4">
 
                 <div className={"flex justify-center"}>
                     <input
@@ -27,7 +27,7 @@ const Home = () => {
                     />
                 </div>
 
-                <div className={"bg-[rgba(10,35,149,0.7)] m-3"}>
+                <div className={"bg-[rgba(10,35,149,0.7)] my-3 rounded"}>
                     <img src="/images/avatar.png" className={"w-28 mx-auto"} alt="Default Avatar"/>
                 </div>
 
@@ -44,12 +44,12 @@ const Home = () => {
             {/*bottom*/}
 
             <div className="bg-[rgba(10,35,149,0.7)] mx-auto pt-3 text-white">
-                    <div className="container mx-auto justify-center flex w-full flex-col md:flex-row">
+                    <div className="container mx-auto justify-center flex w-full flex-col md:flex-row gap-5">
 
                     {/*about*/}
-                    <div className={"w-full max-w-96 p-5 mx-auto"}>
+                    <div className={"w-full max-w-96 p-5"}>
                         <div className={"flex w-full p-2 text-xl font-bold"}>
-                            <img src="/Home/questionmark.gif" className={"size-6"} alt="Default Avatar"/>
+                            <img src="/home/questionmark.gif" className={"size-6"} alt="Default Avatar"/>
                             <span className={"mx-auto"}>About</span>
                         </div>
                         <p className={"text-sm"}>
@@ -66,9 +66,9 @@ const Home = () => {
 
 
                     {/*carousel*/}
-                    <div className={"w-full max-w-80 p-5 mx-auto"}>
+                    <div className={"w-full max-w-80 p-5"}>
                         <div className={"flex w-full p-2 text-xl font-bold"}>
-                            <img src="/Home/how.gif" className={"size-6"} alt="Default Avatar"/>
+                            <img src="/home/how.gif" className={"size-6"} alt="Default Avatar"/>
                             <span className={"mx-auto"}>How to play</span>
                         </div>
                         <div>
