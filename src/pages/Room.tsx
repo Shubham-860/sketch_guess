@@ -1,5 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Link} from "react-router";
+import PlayerList from "../components/PlayerList.tsx";
+import Toolbar from "../components/Toolbar.tsx";
+import Canvas, {type CanvasHandle} from "../components/Canvas.tsx";
 
 const Room = () => {
     const scrollChatsToBottom = () => {
@@ -10,6 +13,8 @@ const Room = () => {
             behavior: "smooth",
         });
     };
+
+
     let players: any[] = [1, 2, 3];
     const colors = [
         // Row 1
@@ -40,15 +45,17 @@ const Room = () => {
         "#8F3A69",
         "#B85F45",
     ] as const;
-    const brushSizes = [10, 20, 30, 40, 50] as const;
+    const brushSizes = [1, 5, 10, 20, 30] as const;
     type Colors = (typeof colors[number]);
     const [gameState, setGameState] = useState<'Waiting' | 'Playing' | 'Ended'>("Playing")
     const [timeLeft, setTimeLeft] = useState(90)
     const [chat, setChat] = useState("")
     const [chats, setChats] = useState(["asd", "asddas", "wefw"])
-    const [color, setColor] = useState<Colors>("#FFFFFF")
+    const [color, setColor] = useState<Colors>("#000000")
     const [isBrushMenuOpen, setIsBrushMenuOpen] = useState(false)
     const [brush, setBrush] = useState<typeof brushSizes[number]>(10)
+
+    const canvasHandleRef = useRef<CanvasHandle>(null);
 
     const handleChatSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -73,9 +80,10 @@ const Room = () => {
     return (
         <section className={"container mx-auto p-2 md:p-10"}>
             {/*head*/}
-            <Link to={"/"} className={""}>
-                <img src="/logo.gif" className={"h-16"} alt="logo"/>
+            <Link to={"/"} className={"w-full"}>
+                <img src="/logo.gif" className={"h-16 mx-auto md:ms-0"} alt="logo"/>
             </Link>
+
             {/*info*/}
             <div className={"bg-white flex justify-between items-center h-16 mt-5 mb-2 px-2 rounded "}>
                 <div className={"flex items-center"}>
@@ -97,113 +105,33 @@ const Room = () => {
                     <img src="/room/settings.gif" alt="settings" className={"size-14 "}/>
                 </div>
             </div>
+
             {/*3 rows*/}
 
             <div className="grid grid-cols-2 gap-2 md:grid-cols-12 ">
 
                 {/*left players*/}
-                <div className="order-2 md:order-1 md:col-span-2 rounded">
-
-                    {players.map((item, index) => (
-                        <div key={index} className={"flex justify-between bg-white items-center mb-2 ps-1"}>
-                            <div>
-                                #1
-                                {index === 0 && <img src="/room/owner.gif" className={"size-5"} alt=""/>}
-
-                            </div>
-                            <div className={"text-sm"}>
-                                <p className={"text-blue-500"}>
-                                    {item?.name || "RagonMax"}
-                                </p>
-                                <p>
-                                    0 Points
-                                </p>
-                            </div>
-                            <div className={"w-12 relative"}>
-                                <img src="/images/avatar.png" alt="avtar" className={"top-0 left-0"}/>
-                                {!item?.turn &&
-                                    <img src="/room/crown.gif" alt="avtar"
-                                         className={"w-6 absolute -top-3 z-10 left-0"}/>
-                                }
-                            </div>
-                        </div>
-                    ))}
-
-
-                </div>
-
+                <PlayerList players={players}/>
 
 
                 {/*center settings and game*/}
                 <div className="order-1 col-span-2 md:order-2 md:col-span-7 rounded">
 
-                    <div className={"h-96 bg-white rounded"}></div>
-                    <div className={"h-10 flex justify-between mt-2 rounded"}>
-                        <div className={"flex gap-2"}>
-                            <div className={"size-12 bg-white"} style={{backgroundColor: color}}></div>
-                            <div className={"grid grid-cols-12 gap-0"}>
-                                {colors.map((item, index) => (
-                                    <div key={index}
-                                         className="h-6 w-6"
-                                         style={{backgroundColor: item}}
-                                         onClick={() => setColor(item)}
-                                    >
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    className="size-12 rounded border border-gray-300 bg-white flex items-center justify-center cursor-pointer"
-                                    onClick={() => setIsBrushMenuOpen((open) => !open)}
-                                    aria-label="Choose brush size"
-                                    aria-expanded={isBrushMenuOpen}
-                                >
-                                    <img src="/room/size.gif" className="brightness-0" alt=""
-                                         style={{height: brush, width: brush, maxHeight: "100%", maxWidth: "100%"}}
-                                    />
-                                </button>
+                    {/*canvas*/}
 
-                                {isBrushMenuOpen && (
-                                    <div
-                                        className="absolute bottom-full left-1/2 z-20 mb-1 flex -translate-x-1/2 flex-col gap-1 rounded bg-white p-1 ">
-                                        {brushSizes.map((size) => (
-                                            <button
-                                                key={size}
-                                                type="button"
-                                                className="size-12 rounded border cursor-pointer bg-white border-gray-300 flex justify-center items-center"
-                                                onClick={() => {
-                                                    setBrush(size)
-                                                    setIsBrushMenuOpen(false)
-                                                }}
-                                                aria-label={`Select brush size ${size}`}
-                                            >
-                                                <img src="/room/size.gif" className={"brightness-0"}
-                                                     style={{
-                                                         height: size,
-                                                         width: size,
-                                                         maxHeight: "100%",
-                                                         maxWidth: "100%"
-                                                     }}
-                                                     alt=""/>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className={"flex justify-center gap-2"}>
-                            <div className={"bg-white size-12"}><img src="/room/pen.gif" alt="pen" className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1 "}/></div>
-                            <div className={"bg-white size-12"}><img src="/room/fill.gif" alt="fill" className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1 "}/></div>
-                        </div>
-                        <div className={"flex justify-center gap-2"}>
-                            <div className={"bg-white size-12"}><img src="/room/undo.gif" alt="pen" className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1"}/></div>
-                            <div className={"bg-white size-12"}><img src="/room/clear.gif" alt="fill" className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1"}/></div>
-                        </div>
+                    <div className={"h-96 bg-white rounded"}>
+                        <Canvas color={color} brush={brush} ref={canvasHandleRef}/>
+
                     </div>
+
+                    <Toolbar
+                        color={color} colors={colors} setColor={setColor}
+                        brush={brush} setBrush={setBrush} brushSizes={brushSizes} isBrushMenuOpen={isBrushMenuOpen}
+                        setIsBrushMenuOpen={setIsBrushMenuOpen} onUndo={() => canvasHandleRef.current?.undo()}
+                        onClear={() => canvasHandleRef.current?.clear()}
+                    />
+
                 </div>
-
-
 
 
                 {/*right chat and guess*/}
@@ -215,7 +143,8 @@ const Room = () => {
                             </div>
                             <div id="chat-list" className={"max-h-80 overflow-y-auto"}>
                                 {chats.map((item, i) =>
-                                    <p key={i} className={i % 2 === 0 ? "bg-gray-100 p-1 wrap-break-word" : "p-1 wrap-break-word"}>
+                                    <p key={i}
+                                       className={i % 2 === 0 ? "bg-gray-100 p-1 wrap-break-word" : "p-1 wrap-break-word"}>
                                         {item}
                                     </p>)}
                             </div>
