@@ -23,6 +23,7 @@ export type CanvasHandle = {
     remoteDrawStart: (point: Point, color: string, size: number) => void;
     remoteDrawMove: (point: Point) => void;
     remoteDrawEnd: () => void;
+    loadStrokes: (strokes: Stroke[]) => void;
 }
 const Canvas = ({color, brush, ref, onDrawStart, onDrawMove, onDrawEnd}: CanvasProps) => {
         const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,11 +136,13 @@ const Canvas = ({color, brush, ref, onDrawStart, onDrawMove, onDrawEnd}: CanvasP
                     points: [...remotePointsRef.current],
                     color: remoteStyleRef.current.color,
                     size: remoteStyleRef.current.size
-                })
+                });
                 remotePointsRef.current = [];
+            },
+            loadStrokes: (strokes: Stroke[]) => {
+                strokesRef.current = strokes;
+                redrawAll(strokes);
             }
-
-
         }))
 
         const handlePointerDown = (evet: React.PointerEvent<HTMLCanvasElement>) => {

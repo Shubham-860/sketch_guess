@@ -1,40 +1,30 @@
-import { useState} from 'react';
-import {Link, useNavigate} from "react-router";
-import {socket} from "../socket.ts";
+import {useState} from 'react';
+import {useNavigate} from "react-router";
+import {getPlayerSession, socket} from "../socket.ts";
+import AvatarPicker, {avatars} from "../components/AvatarPicker.tsx";
 
 const slides = ['/home/step1.gif', '/home/step2.gif', '/home/step3.gif', '/home/step4.gif', '/home/step5.gif'];
 
 const Home = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [name, setName] = useState("")
-    const [joinGame, setJoinGame] = useState(true)
-
+    const [name, setName] = useState("");
+    const [avatar, setAvatar] = useState<string>(avatars[0]);
 
     const handleCreateRoom = () => {
-        const playerName = name.trim() || "Player" + Math.floor(Math.random() * 1000)
-        sessionStorage.setItem("playerName", playerName);
+        const {playerId, name: playerName} = getPlayerSession(name);
+        sessionStorage.setItem("playerAvatar", avatar);
 
-        socket.emit("create_room", {name: playerName, avatar: "/images/avatar.png"}, (response: {
-            success: boolean;
-            roomId: string
-        }) => {
-            if (response.success) {
-                console.log(response);
-                navigate(`/room/${response.roomId}`)
-            }
-            else alert("failed creating room");
-        })
+        socket.emit("create_room", {name: playerName, avatar, playerId},
+            (response: {
+                success: boolean;
+                roomId: string
+            }) => {
+                if (response.success) {
+                    navigate(`/room/${response.roomId}`)
+                } else alert("failed creating room");
+            })
     }
-
-    // useEffect(() => {
-    //     socket.on("connect", () => {
-    //         console.log("connecting to server", socket.id);
-    //     })
-    //     socket.on("connect_error", (err) => {
-    //         console.log("Connection failed ", err.message);
-    //     })
-    // }, []);
 
     return (
         <section className="mx-auto">
@@ -45,7 +35,7 @@ const Home = () => {
             </div>
 
             {/*middle*/}
-            <div className="bg-[rgba(10,50,149,0.7)] w-xs md:w-sm mx-auto p-3 my-4">
+            <div className="bg-[rgba(10,50,149,0.7)] w-xs md:w-sm mx-auto p-3 my-4 rounded">
 
                 <div className={"flex justify-center"}>
                     <input
@@ -57,22 +47,15 @@ const Home = () => {
                     />
                 </div>
 
-                <div className={"bg-[rgba(10,35,149,0.7)] my-3 rounded"}>
-                    <img src="/images/avatar.png" className={"w-28 mx-auto"} alt="Default Avatar"/>
+                <div className={"bg-[rgba(10,35,149,0.7)] my-3 rounded p-2"}>
+                    <AvatarPicker avatar={avatar} setAvatar={setAvatar}/>
                 </div>
 
                 <div>
-                    {joinGame &&
-                        <Link
-                            to="/room"
-                            className="mb-2 block w-full cursor-pointer bg-green-500 p-1.5 text-xl text-white md:p-3 md:text-3xl font-semibold text-center rounded"
-                        >
-                            Start
-                        </Link>}
                     <button
                         onClick={handleCreateRoom}
                         type={"button"}
-                        className="block w-full cursor-pointer bg-blue-400 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded"
+                        className="block w-full cursor-pointer bg-blue-400 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded hover:bg-blue-500 transition-colors"
                     >
                         Create Private Room
                     </button>

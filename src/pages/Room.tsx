@@ -1,11 +1,24 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Link, useParams} from "react-router";
+import {Link, useNavigate, useParams} from "react-router";
 import PlayerList from "../components/PlayerList.tsx";
 import Toolbar from "../components/Toolbar.tsx";
 import Canvas, {type CanvasHandle} from "../components/Canvas.tsx";
-import {socket} from "../socket.ts";
+import AvatarPicker, {avatars} from "../components/AvatarPicker.tsx";
+import {getPlayerSession, socket} from "../socket.ts";
 
 const Room = () => {
+    const navigate = useNavigate();
+    const {roomId} = useParams<{ roomId: string }>();
+
+    // Check if player profile already exists in session
+    const [playerProfile, setPlayerProfile] = useState<{ name: string; avatar: string } | null>(() => {
+        const name = sessionStorage.getItem("playerName");
+        const avatar = sessionStorage.getItem("playerAvatar");
+        return name && avatar ? { name, avatar } : null;
+    });
+    const [inputName, setInputName] = useState("");
+    const [selectedAvatar, setSelectedAvatar] = useState<string>(avatars[0]);
+
     const scrollChatsToBottom = () => {
         const chatList = document.getElementById("chat-list");
 
@@ -15,41 +28,12 @@ const Room = () => {
         });
     };
 
-
     const colors = [
-        // Row 1
-        "#FFFFFF",
-        "#BDBDBD",
-        "#FF2020",
-        "#FF6500",
-        "#FFE000",
-        "#00D000",
-        "#00F08A",
-        "#00AEEF",
-        "#2525D9",
-        "#A500C5",
-        "#D95A9F",
-        "#FFA080",
-
-        // Row 2 - darker versions
-        "#000000",
-        "#555555",
-        "#A80000",
-        "#B83D00",
-        "#B89F00",
-        "#008000",
-        "#008F52",
-        "#0079A8",
-        "#121278",
-        "#620078",
-        "#8F3A69",
-        "#B85F45",
+        "#FFFFFF", "#BDBDBD", "#FF2020", "#FF6500", "#FFE000", "#00D000", "#00F08A", "#00AEEF", "#2525D9", "#A500C5", "#D95A9F", "#FFA080", "#000000", "#555555", "#A80000", "#B83D00", "#B89F00", "#008000", "#008F52", "#0079A8", "#121278", "#620078", "#8F3A69", "#B85F45",
     ] as const;
     const brushSizes = [1, 5, 10, 20, 30] as const;
 
     type Colors = (typeof colors[number]);
-
-    const {roomId} = useParams<{ roomId: string }>()
 
     const [players, setPlayers] = useState<any[]>([])
     const [gameState, setGameState] = useState<'Waiting' | 'Playing' | 'Ended'>("Playing")
@@ -71,34 +55,53 @@ const Room = () => {
         scrollChatsToBottom()
     }
 
+    const handleJoinSubmit = () => {
+        const finalName = inputName.trim() || "Player " + Math.floor(Math.random() * 1000);
+        sessionStorage.setItem("playerName", finalName);
+        sessionStorage.setItem("playerAvatar", selectedAvatar);
+        setPlayerProfile({ name: finalName, avatar: selectedAvatar });
+    };
+
     useEffect(() => {
-        if (!roomId) return;
-        const name = sessionStorage.getItem("playerName") || "Player" + Math.floor(Math.random() * 1000);
+        if (!roomId) {
+            navigate("/");
+            return;
+        }
 
-        socket.emit("join_room", {roomId, name, avatar: "/images/avatar.png"},
-            (res: any) => {
-                if (!res.success) {
-                    alert(res?.error || "Failed to join the room ")
-                    return
-                }
+        if (!playerProfile) return; // Wait until player chooses name & avatar
 
-                setPlayers(res.players);
-            });
+        const { playerId } = getPlayerSession();
+
+        socket.emit("join_room", {
+            roomId, 
+            name: playerProfile.name, 
+            avatar: playerProfile.avatar, 
+            playerId
+        }, (res: any) => {
+            if (!res.success) {
+                alert(res?.error || "Room not found or expired");
+                navigate("/");
+                return;
+            }
+
+            setPlayers(res.players);
+
+            if (res.strokes && res.strokes.length > 0) {
+                canvasHandleRef.current?.loadStrokes(res.strokes);
+            }
+        });
 
         const handlePlayerJoined = (updated: any[]) => setPlayers(updated);
-
         const handlePlayerLeft = (updated: any[]) => setPlayers(updated);
 
-
-        socket.on("player_joined", handlePlayerJoined)
-        socket.on("player_left", handlePlayerLeft)
-
+        socket.on("player_joined", handlePlayerJoined);
+        socket.on("player_left", handlePlayerLeft);
 
         return () => {
             socket.off("player_joined", handlePlayerJoined);
             socket.off("player_left", handlePlayerLeft);
         };
-    }, [roomId]);
+    }, [roomId, playerProfile, navigate]);
 
     useEffect(() => {
         if (gameState !== "Playing" || timeLeft === 0) {
@@ -140,6 +143,41 @@ const Room = () => {
         }
     }, [roomId]);
 
+    // GATE: If player doesn't have a profile yet (direct link joiner), show avatar & name picker
+    if (!playerProfile) {
+        return (
+            <section className="min-h-screen flex items-center justify-center p-4">
+                <div className="bg-[rgba(10,50,149,0.85)] w-full max-w-sm mx-auto p-5 rounded-lg text-white shadow-xl flex flex-col gap-4">
+                    <img src="/logo.gif" className="h-14 mx-auto" alt="logo" />
+                    <h2 className="text-center font-bold text-xl">Join Room {roomId}</h2>
+
+                    <div className="bg-[rgba(10,35,149,0.7)] p-2 rounded">
+                        <AvatarPicker avatar={selectedAvatar} setAvatar={setSelectedAvatar} />
+                    </div>
+
+                    <input
+                        type="text"
+                        placeholder="Enter your name"
+                        className="w-full rounded border bg-white p-2 text-black outline-none focus:ring-2 focus:ring-blue-500"
+                        value={inputName}
+                        onChange={(e) => setInputName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleJoinSubmit();
+                        }}
+                    />
+
+                    <button
+                        type="button"
+                        onClick={handleJoinSubmit}
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold p-2.5 rounded cursor-pointer transition active:scale-95"
+                    >
+                        Join Game
+                    </button>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className={"container mx-auto p-2 md:p-10"}>
             {/*head*/}
@@ -163,7 +201,6 @@ const Room = () => {
                     </span>
 
                 </div>
-                <div className={"text-xl"}> {gameState}</div>
                 <div>
                     <img src="/room/settings.gif" alt="settings" className={"size-14 "}/>
                 </div>
