@@ -1,8 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Link} from "react-router";
+import {Link, useParams} from "react-router";
 import PlayerList from "../components/PlayerList.tsx";
 import Toolbar from "../components/Toolbar.tsx";
 import Canvas, {type CanvasHandle} from "../components/Canvas.tsx";
+import {socket} from "../socket.ts";
 
 const Room = () => {
     const scrollChatsToBottom = () => {
@@ -15,7 +16,6 @@ const Room = () => {
     };
 
 
-    let players: any[] = [1, 2, 3];
     const colors = [
         // Row 1
         "#FFFFFF",
@@ -46,7 +46,12 @@ const Room = () => {
         "#B85F45",
     ] as const;
     const brushSizes = [1, 5, 10, 20, 30] as const;
+
     type Colors = (typeof colors[number]);
+
+    const {roomId} = useParams<{ roomId: string }>()
+
+    const [players, setPlayers] = useState<any[]>([])
     const [gameState, setGameState] = useState<'Waiting' | 'Playing' | 'Ended'>("Playing")
     const [timeLeft, setTimeLeft] = useState(90)
     const [chat, setChat] = useState("")
@@ -67,6 +72,35 @@ const Room = () => {
     }
 
     useEffect(() => {
+        if (!roomId) return;
+        const name = sessionStorage.getItem("playerName") || "Player" + Math.floor(Math.random() * 1000);
+
+        socket.emit("join_room", {roomId, name, avatar: "/images/avatar.png"},
+            (res: any) => {
+                if (!res.success) {
+                    alert(res?.error || "Failed to join the room ")
+                    return
+                }
+
+                setPlayers(res.players);
+            });
+
+        const handlePlayerJoined = (updated: any[]) => setPlayers(updated);
+
+        const handlePlayerLeft = (updated: any[]) => setPlayers(updated);
+
+
+        socket.on("player_joined", handlePlayerJoined)
+        socket.on("player_left", handlePlayerLeft)
+
+
+        return () => {
+            socket.off("player_joined", handlePlayerJoined);
+            socket.off("player_left", handlePlayerLeft);
+        };
+    }, [roomId]);
+
+    useEffect(() => {
         if (gameState !== "Playing" || timeLeft === 0) {
             if (timeLeft === 0) setGameState("Ended")
             return
@@ -76,6 +110,35 @@ const Room = () => {
         return () => window.clearTimeout(timer)
     }, [gameState, timeLeft])
 
+    useEffect(() => {
+        const handleDrawStart = (data: { x: number; y: number; color: string; size: number }) => {
+            canvasHandleRef.current?.remoteDrawStart({
+                x: data.x, y: data.y,
+            }, data.color, data.size);
+        }
+
+        const handleDrawMove = (point: { x: number; y: number }) => canvasHandleRef.current?.remoteDrawMove(point);
+
+        const handleDrawEnd = () => canvasHandleRef.current?.remoteDrawEnd()
+
+        const handleCanvasClear = () => canvasHandleRef.current?.clear();
+
+        const handleCanvasUndo = () => canvasHandleRef.current?.undo();
+
+        socket.on("draw_start", handleDrawStart);
+        socket.on("draw_move", handleDrawMove);
+        socket.on("draw_end", handleDrawEnd);
+        socket.on("canvas_clear", handleCanvasClear);
+        socket.on("draw_undo", handleCanvasUndo);
+
+        return () => {
+            socket.off("draw_start", handleDrawStart);
+            socket.off("draw_move", handleDrawMove);
+            socket.off("draw_end", handleDrawEnd);
+            socket.off("canvas_clear", handleCanvasClear);
+            socket.off("draw_undo", handleCanvasUndo);
+        }
+    }, [roomId]);
 
     return (
         <section className={"container mx-auto p-2 md:p-10"}>
@@ -104,6 +167,22 @@ const Room = () => {
                 <div>
                     <img src="/room/settings.gif" alt="settings" className={"size-14 "}/>
                 </div>
+
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const link = `${window.location.origin}/room/${roomId}`;
+                            navigator.clipboard.writeText(link)
+                                .then(() => console.log("Room link copied to clipboard:", link))
+                                .catch(err => console.error(err));
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1.5 rounded cursor-pointer font-medium"
+                    >
+                        📋 Copy Room Link
+                    </button>
+                    <div className={"text-xl"}> {gameState}</div>
+                </div>
             </div>
 
             {/*3 rows*/}
@@ -120,15 +199,28 @@ const Room = () => {
                     {/*canvas*/}
 
                     <div className={"h-96 bg-white rounded"}>
-                        <Canvas color={color} brush={brush} ref={canvasHandleRef}/>
+                        <Canvas color={color} brush={brush} ref={canvasHandleRef}
+                                onDrawStart={(point, strokeColor, size) =>
+                                    socket.emit("draw_start", {...point, color: strokeColor, size})}
+                                onDrawMove={(point) => socket.emit("draw_move", point)}
+                                onDrawEnd={() => socket.emit("draw_end")}
+
+                        />
 
                     </div>
 
                     <Toolbar
                         color={color} colors={colors} setColor={setColor}
                         brush={brush} setBrush={setBrush} brushSizes={brushSizes} isBrushMenuOpen={isBrushMenuOpen}
-                        setIsBrushMenuOpen={setIsBrushMenuOpen} onUndo={() => canvasHandleRef.current?.undo()}
-                        onClear={() => canvasHandleRef.current?.clear()}
+                        setIsBrushMenuOpen={setIsBrushMenuOpen}
+                        onUndo={() => {
+                            canvasHandleRef.current?.undo();
+                            socket.emit("draw_undo");
+                        }}
+                        onClear={() => {
+                            canvasHandleRef.current?.clear();
+                            socket.emit("canvas_clear");
+                        }}
                     />
 
                 </div>

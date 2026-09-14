@@ -1,13 +1,31 @@
-import {useEffect, useState} from 'react';
-import {Link} from "react-router";
+import { useState} from 'react';
+import {Link, useNavigate} from "react-router";
 import {socket} from "../socket.ts";
 
 const slides = ['/home/step1.gif', '/home/step2.gif', '/home/step3.gif', '/home/step4.gif', '/home/step5.gif'];
 
 const Home = () => {
+    const navigate = useNavigate()
     const [currentSlide, setCurrentSlide] = useState(0);
     const [name, setName] = useState("")
     const [joinGame, setJoinGame] = useState(true)
+
+
+    const handleCreateRoom = () => {
+        const playerName = name.trim() || "Player" + Math.floor(Math.random() * 1000)
+        sessionStorage.setItem("playerName", playerName);
+
+        socket.emit("create_room", {name: playerName, avatar: "/images/avatar.png"}, (response: {
+            success: boolean;
+            roomId: string
+        }) => {
+            if (response.success) {
+                console.log(response);
+                navigate(`/room/${response.roomId}`)
+            }
+            else alert("failed creating room");
+        })
+    }
 
     // useEffect(() => {
     //     socket.on("connect", () => {
@@ -51,12 +69,13 @@ const Home = () => {
                         >
                             Start
                         </Link>}
-                    <Link
-                        to="/room"
+                    <button
+                        onClick={handleCreateRoom}
+                        type={"button"}
                         className="block w-full cursor-pointer bg-blue-400 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded"
                     >
                         Create Private Room
-                    </Link>
+                    </button>
                 </div>
             </div>
 
