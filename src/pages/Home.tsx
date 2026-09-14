@@ -1,11 +1,23 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Link} from "react-router";
+import {socket} from "../socket.ts";
 
 const slides = ['/home/step1.gif', '/home/step2.gif', '/home/step3.gif', '/home/step4.gif', '/home/step5.gif'];
 
 const Home = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [name, setName] = useState("")
+    const [joinGame, setJoinGame] = useState(true)
+
+    // useEffect(() => {
+    //     socket.on("connect", () => {
+    //         console.log("connecting to server", socket.id);
+    //     })
+    //     socket.on("connect_error", (err) => {
+    //         console.log("Connection failed ", err.message);
+    //     })
+    // }, []);
+
     return (
         <section className="mx-auto">
             {/*head*/}
@@ -32,6 +44,13 @@ const Home = () => {
                 </div>
 
                 <div>
+                    {joinGame &&
+                        <Link
+                            to="/room"
+                            className="mb-2 block w-full cursor-pointer bg-green-500 p-1.5 text-xl text-white md:p-3 md:text-3xl font-semibold text-center rounded"
+                        >
+                            Start
+                        </Link>}
                     <Link
                         to="/room"
                         className="block w-full cursor-pointer bg-blue-400 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded"
@@ -44,7 +63,7 @@ const Home = () => {
             {/*bottom*/}
 
             <div className="bg-[rgba(10,35,149,0.7)] mx-auto pt-3 text-white">
-                    <div className="container mx-auto justify-center flex w-full flex-col md:flex-row gap-5">
+                <div className="container mx-auto justify-center flex w-full flex-col md:flex-row gap-5">
 
                     {/*about*/}
                     <div className={"w-full max-w-96 p-5"}>
