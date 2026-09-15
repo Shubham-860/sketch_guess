@@ -6,7 +6,6 @@ export type PlayerItem = {
     avatar?: string;
     score?: number;
     isHost?: boolean;
-    turn?: boolean;
     isDrawing?: boolean;
     connected?: boolean;
 };
@@ -61,7 +60,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
                                         title="Disconnected / Reconnecting..." 
                                     />
                                 )}
-                                {(item.turn || item.isDrawing) && (
+                                {item.isDrawing && (
                                     <img 
                                         src="/room/pen.gif" 
                                         className="size-4 shrink-0" 
@@ -85,9 +84,9 @@ const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
                             {hasCrown && (
                                 <img 
                                     src="/room/crown.gif" 
-                                    alt="crown"
-                                    className="w-6 absolute -top-3.5 -left-1.5 z-10 drop-shadow"
-                                    title="1st Place Leader"
+                                    alt="crown" 
+                                    className="w-6 absolute -top-3.5 -left-1.5 z-10 drop-shadow" 
+                                    title="1st Place Leader" 
                                 />
                             )}
                         </div>

@@ -73,14 +73,17 @@ const Toolbar = <Color extends string, Brush extends number>(
                 </div>
             </div>
 
+            {/* TODO: Implement pen/fill tool switching when bucket fill backend support is added */}
+            {/*
             <div className={"flex justify-center gap-2"}>
                 <div className={"bg-white size-12"}><img src="/room/pen.gif" alt="pen"
-                                                         className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1 "}/>
+                                                         className={"size-12 rounded opacity-70 hover:opacity-100 hover:p-1 "}/>
                 </div>
                 <div className={"bg-white size-12"}><img src="/room/fill.gif" alt="fill"
-                                                         className={"size-12  rounded opacity-70 hover:opacity-100 hover:p-1 "}/>
+                                                         className={"size-12 rounded opacity-70 hover:opacity-100 hover:p-1 "}/>
                 </div>
             </div>
+            */}
 
             <div className={"flex justify-center gap-2"}>
                 <button onClick={onUndo}
