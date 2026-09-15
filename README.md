@@ -1,32 +1,63 @@
-# React + TypeScript + Vite
+# Sketch Guess
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A real-time multiplayer drawing and guessing game, similar to Skribbl.io. One player draws a word while the others try to guess it in the chat.
 
-Currently, two official plugins are available:
+Live demo: https://sketch-guess-shubham.vercel.app/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Create or join a game room using a shareable room code
+- Real-time drawing synced across all players
+- Player names and avatar selection
+- In-room chat for guessing
+- Drawer rotates each round
+- Score tracking
+- Works on both desktop and mobile (touch support)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the Oxlint configuration
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Socket.IO (client)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Installation
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+1. Clone the repository
+```
+git clone https://github.com/Shubham-860/sketch_guess.git
+cd sketch_guess
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+2. Install dependencies
+```
+npm install
+```
+
+3. Start the development server
+```
+npm run dev
+```
+
+4. Open the app in your browser at the local address shown in the terminal (usually http://localhost:5173)
+
+Note: This is the frontend only. The backend (Express + Socket.IO) needs to be running separately for multiplayer features to work.
+
+## Other Commands
+
+Build for production
+```
+npm run build
+```
+
+Preview the production build
+```
+npm run preview
+```
+
+Run lint
+```
+npm run lint
+```
