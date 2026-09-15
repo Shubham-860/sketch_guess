@@ -91,7 +91,7 @@ const WordOverlay: React.FC<WordOverlayProps> = ({
                 <div className="bg-[rgba(30,95,210,0.98)] border border-yellow-400/40 p-6 rounded-2xl shadow-2xl max-w-md w-full text-center space-y-5 text-white">
                     <div className="space-y-1">
                         <img src="/logo.gif" className="h-12 mx-auto" alt="" />
-                        <h2 className="text-2xl font-black text-yellow-300 uppercase tracking-wide">🏆 Game Over 🏆</h2>
+                        <h2 className="text-2xl font-black text-yellow-300 uppercase tracking-wide"> Game Over </h2>
                     </div>
 
                     <div className="space-y-2">
@@ -111,7 +111,7 @@ const WordOverlay: React.FC<WordOverlayProps> = ({
                                         className="size-8 rounded-full object-cover"
                                         alt=""
                                     />
-                                    <span className="truncate max-w-[140px] text-sm">{player.name}</span>
+                                    <span className="truncate max-w-35 text-sm">{player.name}</span>
                                 </div>
                                 <span className="text-sm">{player.score ?? 0} pts</span>
                             </div>
