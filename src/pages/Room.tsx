@@ -21,7 +21,7 @@ const Room = () => {
     const navigate = useNavigate();
     const {roomId} = useParams<{ roomId: string }>();
 
-    // Check if player profile already exists in session
+    // check if the user already chose a name and avatar in this browser session
     const [playerProfile, setPlayerProfile] = useState<{ name: string; avatar: string } | null>(() => {
         const name = sessionStorage.getItem('playerName');
         const avatar = sessionStorage.getItem('playerAvatar');
@@ -55,7 +55,7 @@ const Room = () => {
     const [isBrushMenuOpen, setIsBrushMenuOpen] = useState(false);
     const [brush, setBrush] = useState<typeof brushSizes[number]>(10);
 
-    // Turn & Round state
+    // current round and turn state
     const [drawerId, setDrawerId] = useState<string | null>(null);
     const [drawerName, setDrawerName] = useState<string>('');
     const [currentRound, setCurrentRound] = useState<number>(1);
@@ -84,6 +84,7 @@ const Room = () => {
     );
     const canDraw = gameState === 'lobby' || (gameState === 'drawing' && isDrawer);
 
+    // submit a guess to the server
     const handleChatSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!chat.trim() || isDrawer || hasGuessedCorrectly) return;
@@ -92,6 +93,7 @@ const Room = () => {
         setChat('');
     };
 
+    // save player profile and proceed into room
     const handleJoinSubmit = () => {
         const finalName = inputName.trim() || 'Player ' + Math.floor(Math.random() * 1000);
         sessionStorage.setItem('playerName', finalName);
@@ -99,6 +101,7 @@ const Room = () => {
         setPlayerProfile({name: finalName, avatar: selectedAvatar});
     };
 
+    // host initiates match with configured settings
     const handleStartGame = (settings: {
         rounds: number;
         drawTime: number;
@@ -112,6 +115,7 @@ const Room = () => {
         });
     };
 
+    // drawer chose a word from options
     const handleWordSelect = (word: string) => {
         socket.emit('word_chosen', {word});
         setCurrentWord(word);
@@ -160,6 +164,7 @@ const Room = () => {
             }
         });
 
+        // keep local player list and host badge updated
         const updatePlayerState = (updated: any[]) => {
             playersRef.current = updated;
             setPlayers(updated);
@@ -173,6 +178,7 @@ const Room = () => {
         const handlePlayerJoined = (updated: any[]) => updatePlayerState(updated);
         const handlePlayerLeft = (updated: any[]) => updatePlayerState(updated);
 
+        // handle incoming chat and mark guess as correct if it matches current user
         const handleChatMessage = (msg: ChatMessage) => {
             setChats((prev) => [...prev, msg]);
             if (msg.type === 'correct') {
@@ -197,11 +203,12 @@ const Room = () => {
             navigate('/');
         };
 
+        // new round starts, reset state for drawer and guessers
         const handleRoundStart = (data: { drawerId: string; drawerName: string; turn: number; totalTurns: number }) => {
             setDrawerId(data.drawerId);
             setDrawerName(data.drawerName);
 
-            // Backend calculates: totalTurns = rounds * connectedPlayers
+            // turns are divided by active players to get round number
             const playerCount = playersRef.current.length || 2;
             setCurrentRound(Math.ceil(data.turn / playerCount));
             setTotalRounds(Math.round(data.totalTurns / playerCount));
@@ -215,32 +222,34 @@ const Room = () => {
             canvasHandleRef.current?.clear();
         };
 
-        // Backend emits: { words: room.wordOptions }
+        // options sent to the drawer to pick from
         const handleWordOptions = (data: { words?: string[] } | string[]) => {
             const words = Array.isArray(data) ? data : (data?.words || []);
             setWordOptions(words);
             setGameState('choosing');
         };
 
-        // Backend emits: { blanks: string, length: number }
+        // hint blanks sent to all players when drawing starts
         const handleWordPicked = ({blanks, length}: { blanks: string; length: number }) => {
             setWordBlanks(blanks);
             setWordLength(length);
             setGameState('drawing');
         };
 
-        // Backend emits: { word: string }
+        // drawer receives their chosen word
         const handleYourWord = ({word}: { word: string }) => {
             setCurrentWord(word);
             setGameState('drawing');
         };
 
+        // show the answer when timer runs out or everyone guessed
         const handleRoundEnd = ({word, players: updatedPlayers}: { word: string; players: any[] }) => {
             setRevealedWord(word);
             setGameState('round_end');
             if (updatedPlayers) updatePlayerState(updatedPlayers);
         };
 
+        // show podium and final points
         const handleGameOver = ({players: updatedPlayers}: { players: any[] }) => {
             setFinalRankings(updatedPlayers);
             setGameState('game_over');
@@ -303,7 +312,7 @@ const Room = () => {
         };
     }, [roomId]);
 
-    // GATE: If player doesn't have a profile yet (direct link joiner), show avatar & name picker
+    // prompt player for name and avatar if joining directly via shared link
     if (!playerProfile) {
         return (
             <section className="min-h-screen flex items-center justify-center p-4">
@@ -340,12 +349,12 @@ const Room = () => {
 
     return (
         <section className="container mx-auto p-2 md:p-10">
-            {/*head*/}
+            {/* home logo button */}
             <button type="button" onClick={handleLeaveRoom} className="cursor-pointer">
                 <img src="/logo.gif" className="h-16 mx-auto md:ms-0" alt="logo"/>
             </button>
 
-            {/*info banner*/}
+            {/* header status bar */}
             <div className="bg-white flex justify-between items-center h-16 mt-5 mb-2 px-3 rounded shadow-xs">
                 <div className="flex items-center gap-3">
                     <div className="bg-[url('/room/clock.gif')] size-14 flex bg-no-repeat bg-contain justify-center items-center">
@@ -359,7 +368,7 @@ const Room = () => {
                     </span>
                 </div>
 
-                {/* Header - Center Word Hint / Announcement */}
+                {/* center word display and clues */}
                 <div className="text-center font-bold flex-1 px-2">
                     {gameState === 'lobby' && (
                         <span className="text-sm text-gray-400">Waiting in Lobby</span>
@@ -418,10 +427,10 @@ const Room = () => {
                 </div>
             </div>
 
-            {/*3 rows*/}
+            {/* main layout grid */}
             <div className="grid grid-cols-2 gap-2 md:grid-cols-12">
 
-                {/*left players*/}
+                {/* player leaderboard */}
                 <PlayerList
                     players={players.map((p) => ({
                         ...p,
@@ -429,10 +438,9 @@ const Room = () => {
                     }))}
                 />
 
-                {/*center settings and game*/}
+                {/* canvas and drawing toolbar */}
                 <div className="order-1 col-span-2 md:order-2 md:col-span-7 rounded">
 
-                    {/*canvas*/}
                     <div className="relative h-96 bg-white rounded overflow-hidden">
                         <Canvas
                             readOnly={!canDraw}
@@ -453,7 +461,7 @@ const Room = () => {
                             }}
                         />
 
-                        {/* Lobby Settings / Waiting Overlay */}
+                        {/* host settings or waiting overlay */}
                         {gameState === 'lobby' && (
                             <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
                                 <LobbySettings
@@ -464,7 +472,7 @@ const Room = () => {
                             </div>
                         )}
 
-                        {/* Word Selection / Round End / Game Over Overlay */}
+                        {/* word picker and game over overlay */}
                         <WordOverlay
                             gameState={gameState}
                             isDrawer={isDrawer}
@@ -501,7 +509,7 @@ const Room = () => {
 
                 </div>
 
-                {/*right chat and guess*/}
+                {/* chat and guessing panel */}
                 <div className="order-3 min-h-96 max-h-96 bg-white md:col-span-3 md:h-full rounded flex flex-col">
                     <div className="flex-1 flex flex-col overflow-hidden">
                         <div id="chat-list" className="flex-1 overflow-y-auto p-2 space-y-1.5 text-sm">
@@ -550,7 +558,7 @@ const Room = () => {
                                     case 'chat':
                                     default:
                                         return (
-                                            <p key={item.id} className="break-words leading-tight">
+                                            <p key={item.id} className="wrap-break-word leading-tight">
                                                 <span className="font-bold text-gray-800">{item.sender}: </span>
                                                 <span className="text-gray-700">{item.text}</span>
                                             </p>

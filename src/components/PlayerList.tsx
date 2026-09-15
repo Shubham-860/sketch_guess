@@ -15,16 +15,15 @@ type PlayerListProps = {
 };
 
 const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
-    // 1. Sort players by score descending
+    // sort leaderboard by score
     const sortedPlayers = [...players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
-    // Find the highest score to award the crown
+    // first place gets the crown if they have points
     const highestScore = sortedPlayers.length > 0 ? (sortedPlayers[0]?.score ?? 0) : 0;
 
     return (
         <div className="order-2 md:order-1 md:col-span-2 rounded">
             {sortedPlayers.map((item, index) => {
-                // Crown goes to leader with points (or 1st place)
                 const hasCrown = index === 0 && highestScore > 0;
                 const isOffline = item.connected === false;
 
@@ -35,7 +34,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
                             isOffline ? "opacity-60" : "opacity-100"
                         }`}
                     >
-                        {/* Rank and Host badge */}
+                        {/* rank position and host badge */}
                         <div className="flex flex-col items-center justify-center w-6 shrink-0">
                             <span className="text-xs font-bold text-gray-500">#{index + 1}</span>
                             {item.isHost && (
@@ -48,7 +47,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
                             )}
                         </div>
 
-                        {/* Name, offline red dot, and Score */}
+                        {/* player name, offline dot and points */}
                         <div className="text-sm flex-1 mx-2 overflow-hidden">
                             <div className="flex items-center gap-1.5">
                                 <p className={`font-semibold truncate ${isOffline ? "text-gray-500" : "text-blue-600"}`}>
@@ -74,7 +73,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players = [] }) => {
                             </p>
                         </div>
 
-                        {/* Avatar and Crown */}
+                        {/* avatar image and winner crown */}
                         <div className="w-11 h-11 relative shrink-0">
                             <img 
                                 src={item?.avatar || "/images/a1.gif"} 

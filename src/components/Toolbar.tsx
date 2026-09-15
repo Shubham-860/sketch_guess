@@ -73,7 +73,7 @@ const Toolbar = <Color extends string, Brush extends number>(
                 </div>
             </div>
 
-            {/* TODO: Implement pen/fill tool switching when bucket fill backend support is added */}
+            {/* pen and fill icons kept on hold until flood fill is ready on the server */}
             {/*
             <div className={"flex justify-center gap-2"}>
                 <div className={"bg-white size-12"}><img src="/room/pen.gif" alt="pen"

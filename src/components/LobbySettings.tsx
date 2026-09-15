@@ -19,6 +19,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleStart = () => {
+        // the server requires two or more players to start a game
         if (playerCount < 2) return;
         setIsSubmitting(true);
         const customWords = customWordsText
@@ -33,7 +34,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
             customWords,
         });
 
-        // Safety timeout so button doesn't permanently freeze if server rejects
+        // re-enable button after a couple seconds if starting fails
         setTimeout(() => setIsSubmitting(false), 2000);
     };
 
@@ -71,7 +72,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm">
-                {/* Rounds */}
+                {/* rounds */}
                 <div className="flex flex-col gap-1">
                     <label className="font-semibold text-xs text-blue-100">Rounds</label>
                     <select
@@ -87,7 +88,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
                     </select>
                 </div>
 
-                {/* Draw Time */}
+                {/* draw time */}
                 <div className="flex flex-col gap-1">
                     <label className="font-semibold text-xs text-blue-100">Draw Time (seconds)</label>
                     <select
@@ -103,7 +104,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
                     </select>
                 </div>
 
-                {/* Word Count */}
+                {/* word choices */}
                 <div className="col-span-2 flex flex-col gap-1">
                     <label className="font-semibold text-xs text-blue-100">Word Choices for Drawer</label>
                     <select
@@ -119,7 +120,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
                     </select>
                 </div>
 
-                {/* Custom Words */}
+                {/* custom words */}
                 <div className="col-span-2 flex flex-col gap-1">
                     <label className="font-semibold text-xs text-blue-100">
                         Custom Words <span className="text-[10px] text-blue-200 font-normal">(Optional, comma or line separated)</span>
@@ -138,7 +139,7 @@ const LobbySettings: React.FC<LobbySettingsProps> = ({ isHost, playerCount, onSt
                 type="button"
                 disabled={isSubmitting || playerCount < 2}
                 onClick={handleStart}
-                className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.98] transition text-white font-bold py-2.5 rounded cursor-pointer text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.98] transition text-white font-bold py-2.5 rounded text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isSubmitting 
                     ? "Starting..." 

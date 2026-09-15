@@ -22,7 +22,7 @@ const WordOverlay: React.FC<WordOverlayProps> = ({
     onWordSelect,
     onLeaveRoom,
 }) => {
-    // 1. CHOOSING A WORD
+    // word choice screen for drawer and waiting message for guessers
     if (gameState === "choosing") {
         if (isDrawer) {
             return (
@@ -66,7 +66,7 @@ const WordOverlay: React.FC<WordOverlayProps> = ({
         );
     }
 
-    // 2. ROUND END (Word Reveal)
+    // round ended and reveal secret word
     if (gameState === "round_end") {
         return (
             <div className="absolute inset-0 z-20 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center p-4">
@@ -81,7 +81,7 @@ const WordOverlay: React.FC<WordOverlayProps> = ({
         );
     }
 
-    // 3. GAME OVER (Podium)
+    // final podium and top players list
     if (gameState === "game_over") {
         const top3 = (finalRankings || []).slice(0, 3);
         const medals = ["🥇", "🥈", "🥉"];
