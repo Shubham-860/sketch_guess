@@ -18,24 +18,29 @@ const Home = () => {
         socket.emit("create_room", {name: playerName, avatar, playerId},
             (response: {
                 success: boolean;
-                roomId: string
+                roomId: string;
+                playerId?: string;
             }) => {
                 if (response.success) {
-                    navigate(`/room/${response.roomId}`)
-                } else alert("failed creating room");
-            })
-    }
+                    if (response.playerId) {
+                        sessionStorage.setItem("sketch_playerId", response.playerId);
+                    }
+                    navigate(`/room/${response.roomId}`);
+                } else {
+                    alert("Failed to create room. Please try again.");
+                }
+            });
+    };
 
     return (
         <section className="mx-auto">
             {/*head*/}
-            <div className={"p-5"}>
+            <div className={"pt-5"}>
                 <img className="mx-auto" src="/logo.gif" alt={"logo"}/>
-                <img className="mx-auto mt-3" src="/images/bg2.gif" alt={"logo"}/>
             </div>
 
             {/*middle*/}
-            <div className="bg-[rgba(10,50,149,0.7)] w-xs md:w-sm mx-auto p-3 my-4 rounded">
+            <div className="bg-[rgba(30,95,210,0.72)] w-xs md:w-sm mx-auto p-3 mb-8 rounded shadow-lg backdrop-blur-xs">
 
                 <div className={"flex justify-center"}>
                     <input
@@ -47,7 +52,7 @@ const Home = () => {
                     />
                 </div>
 
-                <div className={"bg-[rgba(10,35,149,0.7)] my-3 rounded p-2"}>
+                <div className={"bg-[rgba(24,80,185,0.75)] my-3 rounded p-2"}>
                     <AvatarPicker avatar={avatar} setAvatar={setAvatar}/>
                 </div>
 
@@ -55,7 +60,7 @@ const Home = () => {
                     <button
                         onClick={handleCreateRoom}
                         type={"button"}
-                        className="block w-full cursor-pointer bg-blue-400 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded hover:bg-blue-500 transition-colors"
+                        className="block w-full cursor-pointer bg-blue-500 p-1.5 text-xl text-white md:p-3 md:text-2xl text-center rounded hover:bg-blue-600 transition-colors shadow"
                     >
                         Create Private Room
                     </button>
@@ -64,7 +69,7 @@ const Home = () => {
 
             {/*bottom*/}
 
-            <div className="bg-[rgba(10,35,149,0.7)] mx-auto pt-3 text-white">
+            <div className="bg-[rgba(24,80,185,0.75)] mx-auto pt-3 text-white backdrop-blur-xs">
                 <div className="container mx-auto justify-center flex w-full flex-col md:flex-row gap-5">
 
                     {/*about*/}
@@ -73,7 +78,7 @@ const Home = () => {
                             <img src="/home/questionmark.gif" className={"size-6"} alt="Default Avatar"/>
                             <span className={"mx-auto"}>About</span>
                         </div>
-                        <p className={"text-sm"}>
+                        <p className={"text-sm text-blue-50"}>
                             Sketch Guess is a free online multiplayer drawing and guessing game.
                             <br/><br/>
                             A normal game consists of a few rounds. In each round, one player draws a chosen word while
